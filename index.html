@@ -1,9 +1,335 @@
 <html>
   <head>
   <title>0:00</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css?family=Droid+Sans+Mono');
+
+body {
+  background: #2E3440;
+  color: #E5E9F0;
+  font-family: 'Droid Sans Mono', monospace;
+  text-align: center;
+}
+
+.timer {
+  font-family: Droid Sans Mono, monospace;
+  font-size: 28px;
+  
+  &__start, 
+  &__stop, 
+  &__lap {
+    border-radius: 50%;
+    font-weight: 600;
+    height: 5em;
+    width: 5em;
+    text-transform: uppercase;
+    background: #2E3440;
+    // border: 2px solid #8FBCBB;
+    border: none;
+    box-shadow: 0 0 0 1px #ECEFF4, 0 0 0 3px #2E3440;
+    color: white;
+    &:hover,
+    &:focus {
+      background: transparent;
+    }
+  }
+  &__start {
+    background: #88C0D0;
+    box-shadow: 0 0 0 1px #ECEFF4, 0 0 0 3px #88C0D0;
+    &:hover,
+    &:focus {
+      color: #88C0D0;
+      box-shadow: 0 0 0 1px #88C0D0, 0 0 0 3px #2E3440;
+    }
+  }
+  &__stop {
+    background: #EBCB8B;
+    box-shadow: 0 0 0 1px #ECEFF4, 0 0 0 3px #EBCB8B;
+    &:hover, 
+    &:focus {
+      color: #EBCB8B;
+      box-shadow: 0 0 0 1px #EBCB8B, 0 0 0 3px #2E3440;
+    }
+  }
+  &__lap {
+    background: #B48EAD;
+    box-shadow: 0 0 0 1px #ECEFF4, 0 0 0 3px #B48EAD;
+    &:hover,
+    &:focus {
+      color: #B48EAD;
+      box-shadow: 0 0 0 1px #B48EAD, 0 0 0 3px #2E3440;
+    }
+  }
+  
+  &__reset,
+  &__laps-clear {
+    background: #D08770;
+    background: transparent;
+    // box-shadow: 0 0 0 1px #D08770, 0 0 0 3px white;
+    border: none;
+    border: 1px solid white;
+    color: white;
+    // color: #3B4252;
+    text-transform: uppercase;
+    padding: 0.4em 1em;
+    &:hover,
+    &:focus {
+      color: #D08770;
+      border-color: #D08770;
+      color: #2E3440;
+      border-color: #2E3440;
+      background: #D08770;
+      // box-shadow: 0 0 0 1px #D08770, 0 0 0 3px #2E3440;
+    }
+  }
+  
+  &__laps-list {
+    list-style: none;
+    margin: 1em auto;
+    padding: 0;
+  }
+}
+    </style>
+
+
+
+
+
+<script>
+  // Not perfect, but quickest to understand and build upon:
+// Original https://www.sitepoint.com/community/t/javascript-how-to-make-laps-in-the-stopwatch/244936/2
+
+(function() {
+  var hours = 00;
+  var minutes = 00;
+  var seconds = 00;
+  var tens = 00;
+  var aHours = document.getElementById("hours");
+  var aMinutes = document.getElementById("minutes");
+  var aSeconds = document.getElementById("seconds");
+  var aTens = document.getElementById("tens");
+  var Start = document.getElementById("start");
+  var Stop = document.getElementById("stop");
+  var reset = document.getElementById("reset");
+  var clear = document.getElementById("clear");
+  var Interval;
+  var Lap = document.getElementById("lap");
+  var Laps = document.getElementById("laps");
+  var lapCount = 1;
+  var lapsContent = document.getElementById("laps").innerHTML;
+  var lastLap = { hours: 0, minutes: 0, tens: 0, seconds: 0 };
+
+  function leftPad(value) {
+    return value < 10 ? "0" + value : value;
+  }
+  
+  // localStorage detection
+  function supportsLocalStorage() {
+    return typeof(Storage)!== 'undefined';
+  }
+  
+  $('#stop').hide();
+
+  Start.onclick = function() {
+    clearInterval(Interval);
+    Interval = setInterval(startTimer, 10);
+    $('#stop').toggle();
+    $('#start').toggle();
+  };
+
+  Stop.onclick = function() {
+    clearInterval(Interval);
+    $('#start').toggle();
+    $('#stop').toggle();
+  };
+
+  reset.onclick = function() {
+    clearInterval(Interval);
+    hours = "00";
+    minutes = "00";
+    seconds = "00";
+    tens = "00";
+    aHours.innerHTML = hours;
+    aMinutes.innerHTML = minutes;
+    aSeconds.innerHTML = seconds;
+    aTens.innerHTML = tens;
+  };
+  
+  function startTimer() {
+    
+    tens++;
+
+    if (tens < 9) {
+      aTens.innerHTML = "0" + tens;
+    }
+
+    if (tens > 9) {
+      aTens.innerHTML = tens;
+    }
+
+    if (tens > 99) {
+      // console.log("seconds");
+      seconds++;
+      aSeconds.innerHTML = "0" + seconds;
+      tens = 0;
+      aTens.innerHTML = "0" + 0;
+    }
+
+    if (seconds > 9) {
+      aSeconds.innerHTML = seconds;
+    }
+
+    if (seconds > 59) {
+      // console.log("minutes");
+      minutes++;
+      aMinutes.innerHTML = "0" + minutes;
+      seconds = 0;
+      aSeconds.innerHTML = "0" + 0;
+      tens = 0;
+      aTens.innerHTML = "0" + 0;
+    }
+
+    if (minutes > 9) {
+      aMinutes.innerHTML = minutes;
+    }
+
+    if (minutes > 59) {
+      // console.log("seconds");
+      hours++;
+      aHours.innerHTML = "0" + hours;
+      minutes = 0;
+      aMinutes.innerHTML = "0" + 0;
+      seconds = 0;
+      aSeconds.innerHTML = "0" + 0;
+      tens = 0;
+      aTens.innerHTML = "0" + 0;
+    }
+
+    if (hours > 9) {
+      aHours.innerHTML = hours;
+    }
+  }
+  
+  
+
+  // Run the support check
+  if (!supportsLocalStorage()) {
+    console.log('browser storage not supported')
+    
+    Lap.onclick = function() {
+      var lapHours = hours - lastLap.hours;
+      var lapMinutes = minutes - lastLap.minutes;
+      if (lapMinutes < 0) {
+        var lapMinutes = minutes - lastLap.minutes + 60;
+      }
+      var lapSeconds = seconds - lastLap.seconds;
+      if (lapSeconds < 0) {
+        var lapSeconds = seconds - lastLap.seconds + 60;
+      }
+      var lapTens = tens - lastLap.tens;
+      if (lapTens < 0) {
+        var lapTens = tens - lastLap.tens + 100;
+      }
+      lastLap = {
+        tens: tens,
+        seconds: seconds,
+        minutes: minutes,
+        hours: hours
+      };
+
+      Laps.innerHTML +=
+        "<li>" +
+        leftPad(lapHours) +
+        ":" +
+        leftPad(lapMinutes) +
+        ":" +
+        leftPad(lapSeconds) +
+        ":" +
+        leftPad(lapTens) +
+        "</li>";
+    };
+    // Just clear laps list
+    clear.onclick = function() {
+      Laps.innerHTML = '';
+    }
+  } else {
+
+    // HTML5 localStorage Support
+    try {
+      Lap.onclick = function() {
+        var lapHours = hours - lastLap.hours;
+        var lapMinutes = minutes - lastLap.minutes;
+        if (lapMinutes < 0) {
+          var lapMinutes = minutes - lastLap.minutes + 60;
+        }
+        var lapSeconds = seconds - lastLap.seconds;
+        if (lapSeconds < 0) {
+          var lapSeconds = seconds - lastLap.seconds + 60;
+        }
+        var lapTens = tens - lastLap.tens;
+        if (lapTens < 0) {
+          var lapTens = tens - lastLap.tens + 100;
+        }
+        lastLap = {
+          tens: tens,
+          seconds: seconds,
+          minutes: minutes,
+          hours: hours
+        };
+
+        Laps.innerHTML +=
+          "<li>" +
+          "Lap " + lapCount++ + " – " +
+          leftPad(lapHours) +
+          ":" +
+          leftPad(lapMinutes) +
+          ":" +
+          leftPad(lapSeconds) +
+          "." +
+          leftPad(lapTens) +
+          "</li>";
+        
+        localStorage.setItem('laps', JSON.stringify(Laps.innerHTML));
+        // console.log(localStorage.getItem('laps'));
+      };
+
+      clear.onclick = function() {
+        Laps.innerHTML = '';
+        localStorage.removeItem('laps');
+      }
+    }
+    
+    catch (e) {
+    
+      // If any errors, catch and alert the user
+      if (e == QUOTA_EXCEEDED_ERR) {
+        alert('Quota exceeded!');
+      }
+    }
+  
+    if (localStorage.getItem('laps')) {
+    
+      // Retrieve the item
+      var storedLaps = JSON.parse(localStorage.getItem('laps'));
+      $('#laps').html(storedLaps);
+      // console.log(localStorage.getItem('laps'));
+    }
+  }
+})();
+
+    </script>
+    
+    
   </head>
-<body>
-  <h1>Look at the title</h1>
-  </body>
+
+  
+<p class="timer"><span id="hours">00</span>:<span id="minutes">00</span>:<span id="seconds">00</span>.<span id="tens">00</span></p>
+<button class="timer__start" id="start">Start</button>
+<button class="timer__stop" id="stop">Pause</button>
+<button class="timer__reset" id="reset">Reset</button>
+<button class="timer__lap" id="lap">Lap</button>
+<ul class="timer__laps-list" id="laps"></ul>
+<button class="timer__laps-clear" id="clear">Clear Laps</button>
+  
   
 </html>
